@@ -1,0 +1,36 @@
+name: Build and Deploy to Minikube
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure Docker to use Minikube's Docker daemon
+        shell: powershell
+        run: |
+          Write-Host "Setting Docker to use Minikube's Docker daemon..."
+          & minikube -p minikube docker-env | Invoke-Expression
+
+      - name: Build Docker image
+        run: |
+          docker build -t amnanoor124/my-node-app:latest .
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Docker image to Docker Hub
+        run: docker push amnanoor124/my-node-app:latest
+
+      - name: Deploy to Minikube
+        run: |
+          cd app
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml

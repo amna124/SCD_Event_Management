@@ -10,19 +10,27 @@ RUN npm run build
 
 
 # ---------- BACKEND + FINAL IMAGE ----------
-FROM node:18
+# ---------- FINAL IMAGE STAGE (Backend) ----------
+FROM node:18 AS final
 
 WORKDIR /app
 
-# Install backend dependencies
+# Install backend dependencies with increased timeouts and explicit registry
 COPY backend/package*.json ./backend/
-RUN cd backend && npm install
+WORKDIR /app/backend
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 60000 && \
+    npm install
 
-# Copy backend and built frontend
+# Copy the rest of the backend code
+WORKDIR /app
 COPY backend/ ./backend/
-COPY backend/.env ./backend/
+
+# Copy built frontend from the build stage
 COPY --from=frontend /app/frontend/build ./backend/public
 
 EXPOSE 5000
-
 CMD ["node", "backend/server.js"]
+
