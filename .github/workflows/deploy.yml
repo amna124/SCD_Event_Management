@@ -3,27 +3,44 @@ name: Build and Deploy to Minikube
 on:
   push:
     branches:
-      - main
+      - main  # Trigger the workflow on push to the main branch
 
 jobs:
   build-deploy:
-    runs-on: self-hosted
+    runs-on: self-hosted  # Using self-hosted runner
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Configure Docker to use Minikube's Docker daemon
-        shell: powershell
-        run: |
-          Write-Host "Setting Docker to use Minikube's Docker daemon (PowerShell mode)..."
-          Invoke-Expression (& minikube -p minikube docker-env --shell powershell).ToString()
+    - name: Set up Minikube
+      uses: medyagh/setup-minikube@latest
 
-      - name: Build Docker image inside Minikube Docker
-        run: docker build -t amnanoor124/my-node-app:latest .
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-      - name: Deploy to Minikube
-        run: |
-          cd app
-          kubectl apply -f deployment.yaml
-          kubectl apply -f service.yaml
+    - name: Configure Docker to use Minikube's Docker daemon
+      shell: powershell
+      run: |
+        Write-Host "Setting Docker to use Minikube's Docker daemon..."
+        & minikube -p minikube docker-env | Invoke-Expression
+
+    - name: Build Docker image for Node.js App
+      run: |
+        docker build -t amnanoor124/my-node-app:latest .
+      
+    - name: Deploy to Minikube
+      run: |
+        # Ensure Minikube is running
+        minikube status
+        
+        # Apply Kubernetes resources
+        kubectl apply -f app/deployment.yaml  # Correct path to your deployment.yaml
+        kubectl apply -f app/service.yaml  # Correct path to your service.yaml
+        
+        # Verify the pods are running
+        kubectl get pods
+
+    - name: Clean up Minikube
+      run: |
+        minikube stop  # Stop Minikube if required
