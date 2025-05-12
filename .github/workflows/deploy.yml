@@ -13,14 +13,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image using host Docker
+        run: docker build -t amnanoor124/my-node-app:latest .
+
+      - name: Push Docker image to Docker Hub
+        run: docker push amnanoor124/my-node-app:latest
+
       - name: Configure Docker to use Minikube's Docker daemon
         shell: powershell
         run: |
           Write-Host "Setting Docker to use Minikube's Docker daemon..."
           & minikube -p minikube docker-env | Invoke-Expression
-
-      - name: Build Docker image inside Minikube Docker
-        run: docker build -t amnanoor124/my-node-app:latest .
 
       - name: Deploy to Minikube
         run: |
