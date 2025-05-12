@@ -27,7 +27,7 @@ jobs:
 
     - name: Build Docker image for Node.js App
       run: |
-        docker build -t amnanoor124/my-node-app:latest .
+        docker build -t my-node-app:latest .  # Build the Docker image without pushing to Docker Hub
       
     - name: Deploy to Minikube
       run: |
