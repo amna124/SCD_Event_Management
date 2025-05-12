@@ -13,10 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure Docker to use Minikube's Docker daemon (PowerShell compatible)
+      - name: Configure Docker to use Minikube's Docker daemon
         shell: powershell
         run: |
-          Write-Host "Setting Docker to use Minikube's Docker daemon..."
+          Write-Host "Setting Docker to use Minikube's Docker daemon (PowerShell mode)..."
           Invoke-Expression (& minikube -p minikube docker-env --shell powershell).ToString()
 
       - name: Build Docker image inside Minikube Docker
